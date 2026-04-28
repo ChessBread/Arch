@@ -1,0 +1,84 @@
+Ethernet Used
+
+Partition Disk(s): use cfdisk
+
+  locate disk with lsblk
+  cfdisk /dev/yourdiskname
+  select GPT
+  create 1G part for boot/efi
+  create 4G part for swap space (gets used if memory runs out)
+  create rest for root file system
+  use arrowkeys to write changes
+  quit
+
+Format Disks:
+  mkfs.ext4 /dev/yourdisknamehere3 (root partition)
+  mkfs.fat -F 32 /dev/yourdisknamehere1 (efi/boot)
+  mkswap /dev/yourdisknamehere2 (swap space)
+
+Mount File Systems:
+  mount /dev/yourdisknamehere3 /mnt
+  
+  (create boot directory)
+  mkdir -p /mnt/boot/efi
+  mount /dev/yourdisknamehere1 /mnt/boot/efi (efi/boot)
+  swapon /dev/yourdisknamehere2
+
+Install Kernel:
+  pacstrap /mnt base linux linux-firmware sof-firmware(newer soundcards) base-devel grub efibootmgr networkmanager vim(personal prefrence)
+
+Generate fstab:
+  genfstab /mnt
+  genfstab -U /mnt >> /mnt/etc/fstab
+
+Chroot Into The System:
+arch-chroot /mnt
+
+check date and time:
+  date(if correct skip)
+  ln -sf /usr/share/zoneinfo/Country(eg. Africa)/Zone(Johannesburg) /etc/localtime
+  hwclock --systohc (syncs hardware clock)
+
+localization:
+  vim /etc/locale.gen (uncomment # infront of your locale)
+  locale-gen
+  echo 'LANG=en_US.UTF-8' >> /etc/locale.conf
+  cat /etc/locale.conf
+
+Hostname, Root and users:
+  set hostname:
+    echo 'enteryourhostnamehere' >> /etc/hostname
+  set root password:
+    passwd
+    (enter password)
+  add user and password:
+    useradd -m -G wheel -s /bin/bash usernamegoeshere
+    passwd usernamegoeshere
+  give user sudo privilege:
+    EDITOR=vim visudo
+    uncomment %wheel ALL=(ALL:AL) ALL
+    su usernamegoeshere
+    sudo pacman -Syu (if it works user has sudo)
+    exit to go back into chroot
+  enable core systemd services:
+    systemctl enable NetworkManager
+  Setup BootLoader: grub is what I installed
+    grub-install/dev/yourdiskhere
+    grub-mkconfig -o /boot/grub/grub.cfg
+
+    exit
+
+    unmount -a
+
+    reboot
+
+if wifi does not work try nmtui
+
+    
+    
+
+    
+  
+
+
+
